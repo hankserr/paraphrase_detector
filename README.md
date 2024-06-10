@@ -35,4 +35,5 @@ This section defines the acceptable date variants. The scope of the dataset is c
 | M       |  Mon DD, YYYY|  Month abbreviation, Day with leading zeros, Year (Feb 17, 2014)  |
 | N       |  DD Mon, YYYY|  Day with leading zeros, Month abbreviation, Year (17 Feb, 2014)  |
 | O       |  YYYY, Mon DD|  Year, Month abbreviation, Day with leading zeros (2014, Feb 17)  |
+
 \* This format defaults to a two-digit year, but can be overridden to have four digits
