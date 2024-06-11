@@ -2,6 +2,7 @@ import random
 from datetime import datetime, timedelta
 import pandas as pd
 import math
+import pdb
 
 # Helper function to create date variations
 def generate_date_variations(date):
@@ -102,7 +103,7 @@ def generate_pairs(array1, n, array2=None):
     pairs_with_label = []
     
     if array2 is None:
-        label = 1
+        label = '1'
         # Single array case: form pairs within array1
         if len(array1) < 2:
             raise ValueError("The array must contain at least two elements to form pairs.")
@@ -111,7 +112,7 @@ def generate_pairs(array1, n, array2=None):
             pair = random.sample(array1, 2)  # Select 2 unique values from the same array
             pairs_with_label.append([pair[0], pair[1], label])
     else:
-        label = 0
+        label = '0'
         # Two array case: form pairs between array1 and array2
         if len(array1) == 0 or len(array2) == 0:
             raise ValueError("Both arrays must contain at least one element to form pairs.")
@@ -124,28 +125,34 @@ def generate_pairs(array1, n, array2=None):
     return pairs_with_label
 
 # Generate the dataset with both good examples and bad examples
-def generate_dataset_with_bad_examples():
+def generate_dataset_with_bad_examples(n):
     dataset = []
 
     # Generating date examples
     base_date = datetime.now()
-    for _ in range(100):  # 50 good examples
+    for _ in range(n):  # 50 good examples
         random_date = base_date + timedelta(days=random.randint(0, 365))
         base_format = random_date.strftime("%Y-%m-%d")
         good_variations = generate_date_variations(base_format)
+        
+        # Must keep good_variation_pairs & bad_variation_pairs lengths at a 5:3 ratio. 
+        # Splicing is temporarily hardcoded.
         good_variation_pairs = generate_pairs(good_variations, 125)
         bad_variation_pairs = generate_pairs(good_variations, 75, generate_bad_date_variations(base_format))
         
         # Splice dataset
         x, y = 0, 0
-        while (x < len(good_variation_pairs)) and (y < len(bad_variation_pairs)):
+        for _ in range(int(len(good_variation_pairs) / 5)):
             dataset.append(good_variation_pairs[x])
             dataset.append(good_variation_pairs[x+1])
-            dataset.append(good_variation_pairs[y])
+            dataset.append(bad_variation_pairs[y])
             dataset.append(good_variation_pairs[x+2])
-            dataset.append(good_variation_pairs[y+1])
-            x += 3
-            y += 2
+            dataset.append(bad_variation_pairs[y+1])
+            dataset.append(good_variation_pairs[x+3])
+            dataset.append(good_variation_pairs[x+4])
+            dataset.append(bad_variation_pairs[y+2])
+            x += 5
+            y += 3
 
     return dataset
 
@@ -180,23 +187,24 @@ def reverse_examples(dataset):
 
 
 def main():
-    print("Starting ... Dataset with bad examples")
-    dataset = generate_dataset_with_bad_examples()
+    print("\nStarting dataset with bad examples...\n")
+    dataset = generate_dataset_with_bad_examples(50)
     reverse_examples(dataset)
     df = pd.DataFrame(dataset, columns=["Input", "Paraphrase", "Type"])
     # even_dataset(df)
     df.to_csv('paraphrase_dataset_dates.csv', index=False)
     
     # Verification
-    print(df.head())
-    print(df[df['Type'] == '0'].head())
+    print("Printing first 5 positive and negative examples...\n")
+    print(df[df['Type'] == '1'].head(), "\n")
+    print(df[df['Type'] == '0'].head(), "\n")
 
 
     # Print percentage of 1's
     tot_rows = len(df)
     num_type_1 = len(df[df['Type'] == '1'])
     percentage = (num_type_1 / tot_rows) * 100
-    print(f"Percentage of good examples in the dataset: {percentage:.2f}%")
+    print(f"Total size of dataset: {len(dataset)}\nPercentage of good examples in the dataset: {percentage:.2f}%\n")
 
 
 if __name__ == "__main__":
