@@ -1,30 +1,43 @@
-import pdb
 import random
 from datetime import datetime, timedelta
-from num2words import num2words
 import pandas as pd
 import math
-import csv
 
 # Helper function to create date variations
 def generate_date_variations(date):
     variations = []
-    date_obj = datetime.strptime(date, "%Y-%m-%d")
-    variations.append(date_obj.strftime("%B %d, %Y"))  # June 1, 2024
-    variations.append(date_obj.strftime("%d-%m-%Y"))  # 01-06-2024
-    variations.append(date_obj.strftime("%d %B %Y"))  # 1 June 2024
-    variations.append(date_obj.strftime("%Y/%m/%d"))  # 2024/06/01
-    variations.append(date_obj.strftime("%d/%B/%Y"))  # 01/June/2024 - Using "/" instead of "-"
+    date_obj = datetime.strptime(date, "%Y-%m-%d") # 2009-02-17
 
-    return variations
+    variations.append(date_obj.strftime("%Y-%m-%d")) # 2009-02-17
+    variations.append(date_obj.strftime("%m/%d/%Y")) # 02/17/2009
+    variations.append(date_obj.strftime("%m/%d/%y")) # 02/17/09
+    variations.append(date_obj.strftime("%d/%m/%Y")) # 17/02/2009
+    variations.append(date_obj.strftime("%d/%m/%y")) # 17/02/09
+    variations.append(date_obj.strftime("%Y/%m/%d")) # 2009/02/17
+    variations.append(date_obj.strftime("%B %d, %Y")) # February 17, 2009
+    variations.append(date_obj.strftime("%-m/%-d/%Y")) # 2/17/2009
+    variations.append(date_obj.strftime("%-m/%-d/%y")) # 2/17/09
+    variations.append(date_obj.strftime("%-d/%-m/%Y")) # 17/2/2009
+    variations.append(date_obj.strftime("%-d/%-m/%y")) # 17/2/09
+    variations.append(date_obj.strftime("%Y/%-m/%-d")) # 2009/2/17
+    variations.append(date_obj.strftime("%Y%m%d")) # 20090217
+    variations.append(date_obj.strftime("%b%d%Y")) # Feb172009
+    variations.append(date_obj.strftime("%d%b%Y")) # 17Feb2009
+    variations.append(date_obj.strftime("%Y%b%d")) # 2009Feb17
+    variations.append(date_obj.strftime("%d %B, %Y")) # 17 February, 2009
+    variations.append(date_obj.strftime("%Y, %B %d")) # 2009, February 17
+    variations.append(date_obj.strftime("%b %d, %Y")) # Feb 17, 2009
+    variations.append(date_obj.strftime("%d %b, %Y")) # 17 Feb, 2009
+    variations.append(date_obj.strftime("%y, %B %d")) # 09, February 17
+    variations.append(date_obj.strftime("%b %d, %y")) # Feb 17, 09
+    variations.append(date_obj.strftime("%d %b, %y")) # 17 Feb, 09
+    variations.append(date_obj.strftime("%Y, %b %d")) # 2009, Feb 17
+    variations.append(date_obj.strftime("%y, %b %d")) # 09, Feb 17
+    variations.append(date_obj.strftime("%b %d, %Y")) # Feb 17, 2014
+    variations.append(date_obj.strftime("%d %b, %Y")) # 17 Feb, 2014
+    variations.append(date_obj.strftime("%Y, %b %d")) # 2014, Feb 17
+    
 
-# Helper function to create number variations
-def generate_number_variations(number):
-    num_str = str(number)
-    variations = []
-    variations.append("{:,}".format(number))  # 12,345
-    # Convert number to words (simple approach for demonstration)
-    variations.append(num2words(number))  # twelve thousand three hundred forty-five
     return variations
 
 # Function to generate multiple impossible date variations
@@ -58,6 +71,7 @@ def generate_bad_date_variations(date):
 
     # Incorrect formats
     variations.append(date_obj.strftime("%Y/%d/%m"))  # Add date in "YYYY/DD/MM" format, which is an incorrect order
+    variations.append(date_obj.strftime("%y/%d/%m"))  # Add date in "YY/DD/MM" format, which is an incorrect order
     variations.append(date_obj.strftime("%B %Y %d"))  # Add date in "Month YYYY DD" format, which is illogical
 
     # Logical errors
@@ -82,26 +96,34 @@ def generate_bad_date_variations(date):
 
     return variations  # Return the list of bad date variations
 
-# Function to generate bad number variations
-def generate_bad_number_variations(number):
-    variations = []
-    
-    # Incorrect formats
-    variations.append(f"{number:,}a")  # 12,345a - Adding random letter
-    variations.append(f"{number}-")  # 12345- - Incomplete transformation
-    
-    # Logical errors
-    if number > 1:
-        variations.append(str(number + 1))  # Adding 1 to the number
-    if number < 100000:
-        variations.append(str(number - 1))  # Subtracting 1 from the number
 
-    # Nonsense transformations
-    variations.append("random text")  # Completely irrelevant
-    variations.append(num2words(number).replace(" ", ""))  # Removing spaces in words
+# Creates pairs of good paraphrasing examples
+def generate_pairs(array1, n, array2=None):
+    pairs_with_label = []
     
-    return variations
+    if array2 is None:
+        label = 1
+        # Single array case: form pairs within array1
+        if len(array1) < 2:
+            raise ValueError("The array must contain at least two elements to form pairs.")
+        
+        for _ in range(n):
+            pair = random.sample(array1, 2)  # Select 2 unique values from the same array
+            pairs_with_label.append([pair[0], pair[1], label])
+    else:
+        label = 0
+        # Two array case: form pairs between array1 and array2
+        if len(array1) == 0 or len(array2) == 0:
+            raise ValueError("Both arrays must contain at least one element to form pairs.")
+        
+        for _ in range(n):
+            value1 = random.choice(array1)  # Select 1 value from array1
+            value2 = random.choice(array2)  # Select 1 value from array2
+            pairs_with_label.append([value1, value2, label])
+    
+    return pairs_with_label
 
+# Generate the dataset with both good examples and bad examples
 def generate_dataset_with_bad_examples():
     dataset = []
 
@@ -111,26 +133,19 @@ def generate_dataset_with_bad_examples():
         random_date = base_date + timedelta(days=random.randint(0, 365))
         base_format = random_date.strftime("%Y-%m-%d")
         good_variations = generate_date_variations(base_format)
-        bad_variations = generate_bad_date_variations(base_format)
+        good_variation_pairs = generate_pairs(good_variations, 125)
+        bad_variation_pairs = generate_pairs(good_variations, 75, generate_bad_date_variations(base_format))
         
-        for variation in good_variations:
-            dataset.append((base_format, variation, '1'))
-        
-        for variation in bad_variations:
-            dataset.append((base_format, variation, '0'))
-
-    # Generating number examples
-    for _ in range(100):  # 50 good examples
-        random_number = random.randint(1, 100000)
-        base_format = str(random_number)
-        good_variations = generate_number_variations(random_number)
-        bad_variations = generate_bad_number_variations(random_number)
-        
-        for variation in good_variations:
-            dataset.append((base_format, variation, '1'))
-        
-        for variation in bad_variations:
-            dataset.append((base_format, variation, '0'))
+        # Splice dataset
+        x, y = 0, 0
+        while (x < len(good_variation_pairs)) and (y < len(bad_variation_pairs)):
+            dataset.append(good_variation_pairs[x])
+            dataset.append(good_variation_pairs[x+1])
+            dataset.append(good_variation_pairs[y])
+            dataset.append(good_variation_pairs[x+2])
+            dataset.append(good_variation_pairs[y+1])
+            x += 3
+            y += 2
 
     return dataset
 
@@ -150,14 +165,7 @@ def even_dataset(df):
         good_variations = generate_date_variations(base_format)
         for variation in good_variations :
             new_data.append({"Input": variation[0], "Paraphrase": variation[1], "Type": '1'})
-    
-    for x in range(int(num_needed / 4)):
-        random_number = random.randint(1, 100000)
-        base_format = str(random_number)
-        good_variations = generate_number_variations(random_number)
-        for variation in good_variations :
-            new_data.append({"Input": variation[0], "Paraphrase": variation[1], "Type": '1'})
-        
+            
     new_data = reverse_examples(new_data)
     df = pd.concat([df, new_data], ignore_index = True)
 
@@ -177,7 +185,7 @@ def main():
     reverse_examples(dataset)
     df = pd.DataFrame(dataset, columns=["Input", "Paraphrase", "Type"])
     # even_dataset(df)
-    df.to_csv('paraphrase_dataset.csv', index=False)
+    df.to_csv('paraphrase_dataset_dates.csv', index=False)
     
     # Verification
     print(df.head())
@@ -193,3 +201,15 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+
+#### Old code ####
+'''
+variations.append(date_obj.strftime("%B %d, %Y"))  # June 1, 2024
+    variations.append(date_obj.strftime("%d-%m-%Y"))  # 01-06-2024
+    variations.append(date_obj.strftime("%d %B %Y"))  # 1 June 2024
+    variations.append(date_obj.strftime("%Y/%m/%d"))  # 2024/06/01
+    variations.append(date_obj.strftime("%d/%B/%Y"))  # 01/June/2024 - Using "/" instead of "-"
+'''
