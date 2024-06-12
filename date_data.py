@@ -137,22 +137,22 @@ def generate_dataset_with_bad_examples(n):
 
         # Must keep good_variation_pairs & bad_variation_pairs lengths at a 5:3 ratio.
         # Splicing is temporarily hardcoded.
-        good_variation_pairs = generate_pairs(good_variations, 125)
-        bad_variation_pairs = generate_pairs(good_variations, 75, generate_bad_date_variations(base_format))
+        good_variation_pairs = generate_pairs(good_variations, 210)
+        bad_variation_pairs = generate_pairs(good_variations, 210, generate_bad_date_variations(base_format))
 
         # Splice dataset
         x, y = 0, 0
-        for _ in range(int(len(good_variation_pairs) / 5)):
+        for _ in range(int(len(good_variation_pairs))):
             dataset.append(good_variation_pairs[x])
-            dataset.append(good_variation_pairs[x+1])
+            # dataset.append(good_variation_pairs[x+1])
             dataset.append(bad_variation_pairs[y])
-            dataset.append(good_variation_pairs[x+2])
-            dataset.append(bad_variation_pairs[y+1])
-            dataset.append(good_variation_pairs[x+3])
-            dataset.append(good_variation_pairs[x+4])
-            dataset.append(bad_variation_pairs[y+2])
-            x += 5
-            y += 3
+            # dataset.append(good_variation_pairs[x+2])
+            # dataset.append(bad_variation_pairs[y+1])
+            # dataset.append(good_variation_pairs[x+3])
+            # dataset.append(good_variation_pairs[x+4])
+            # dataset.append(bad_variation_pairs[y+2])
+            x += 1
+            y += 1
 
     return dataset
 
@@ -188,7 +188,7 @@ def reverse_examples(dataset):
 
 def main():
     print("\nStarting dataset with bad examples...\n")
-    dataset = generate_dataset_with_bad_examples(50)
+    dataset = generate_dataset_with_bad_examples(200)
     reverse_examples(dataset)
     df = pd.DataFrame(dataset, columns=["sentence1", "sentence2", "label"])
     # even_dataset(df)
