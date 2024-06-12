@@ -37,32 +37,32 @@ def generate_date_variations(date):
     variations.append(date_obj.strftime("%b %d, %Y")) # Feb 17, 2014
     variations.append(date_obj.strftime("%d %b, %Y")) # 17 Feb, 2014
     variations.append(date_obj.strftime("%Y, %b %d")) # 2014, Feb 17
-    
+
 
     return variations
 
 # Function to generate multiple impossible date variations
 def generate_impossible_date_variation():
     impossible_dates = []
-    
+
     # Define valid ranges for days in each month
     days_in_month = {
         "January": 31, "February": 28, "March": 31, "April": 30,
         "May": 31, "June": 30, "July": 31, "August": 31,
         "September": 30, "October": 31, "November": 30, "December": 31
     }
-    
+
     # Generate random impossible date
     month = random.choice(list(days_in_month.keys()))  # Randomly select a month
     max_day = days_in_month[month]  # Get the maximum valid day for the selected month
-    
+
     # Generate a random invalid day
     invalid_day = random.randint(max_day + 1, max_day + 10)  # Choose a day outside the valid range
     year = random.randint(2000, 2100)  # Choose a random year within a reasonable range
-    
+
     # Format the invalid date
     impossible_date = f"{month} {invalid_day}, {year}"
-    
+
     return impossible_date
 
 # Function to generate bad date variations
@@ -101,13 +101,13 @@ def generate_bad_date_variations(date):
 # Creates pairs of good paraphrasing examples
 def generate_pairs(array1, n, array2=None):
     pairs_with_label = []
-    
+
     if array2 is None:
         label = '1'
         # Single array case: form pairs within array1
         if len(array1) < 2:
             raise ValueError("The array must contain at least two elements to form pairs.")
-        
+
         for _ in range(n):
             pair = random.sample(array1, 2)  # Select 2 unique values from the same array
             pairs_with_label.append([pair[0], pair[1], label])
@@ -116,12 +116,12 @@ def generate_pairs(array1, n, array2=None):
         # Two array case: form pairs between array1 and array2
         if len(array1) == 0 or len(array2) == 0:
             raise ValueError("Both arrays must contain at least one element to form pairs.")
-        
+
         for _ in range(n):
             value1 = random.choice(array1)  # Select 1 value from array1
             value2 = random.choice(array2)  # Select 1 value from array2
             pairs_with_label.append([value1, value2, label])
-    
+
     return pairs_with_label
 
 # Generate the dataset with both good examples and bad examples
@@ -134,12 +134,12 @@ def generate_dataset_with_bad_examples(n):
         random_date = base_date + timedelta(days=random.randint(0, 365))
         base_format = random_date.strftime("%Y-%m-%d")
         good_variations = generate_date_variations(base_format)
-        
-        # Must keep good_variation_pairs & bad_variation_pairs lengths at a 5:3 ratio. 
+
+        # Must keep good_variation_pairs & bad_variation_pairs lengths at a 5:3 ratio.
         # Splicing is temporarily hardcoded.
         good_variation_pairs = generate_pairs(good_variations, 125)
         bad_variation_pairs = generate_pairs(good_variations, 75, generate_bad_date_variations(base_format))
-        
+
         # Splice dataset
         x, y = 0, 0
         for _ in range(int(len(good_variation_pairs) / 5)):
@@ -159,7 +159,7 @@ def generate_dataset_with_bad_examples(n):
 # function to even balance of examples
 def even_dataset(df):
     tot_rows = len(df)
-    num_type_1 = len(df[df['Type'] == '1'])
+    num_type_1 = len(df[df['label'] == '1'])
     percentage = (num_type_1 / tot_rows)
     num_needed = math.ceil((len(df) * (0.50 * percentage)) / 2)
 
@@ -171,8 +171,8 @@ def even_dataset(df):
         base_format = random_date.strftime("%Y-%m-%d")
         good_variations = generate_date_variations(base_format)
         for variation in good_variations :
-            new_data.append({"Input": variation[0], "Paraphrase": variation[1], "Type": '1'})
-            
+            new_data.append({"sentence1": variation[0], "sentence2": variation[1], "label": '1'})
+
     new_data = reverse_examples(new_data)
     df = pd.concat([df, new_data], ignore_index = True)
 
@@ -190,19 +190,19 @@ def main():
     print("\nStarting dataset with bad examples...\n")
     dataset = generate_dataset_with_bad_examples(50)
     reverse_examples(dataset)
-    df = pd.DataFrame(dataset, columns=["Input", "Paraphrase", "Type"])
+    df = pd.DataFrame(dataset, columns=["sentence1", "sentence2", "label"])
     # even_dataset(df)
     df.to_csv('paraphrase_dataset_dates.csv', index=False)
-    
+
     # Verification
     print("Printing first 5 positive and negative examples...\n")
-    print(df[df['Type'] == '1'].head(), "\n")
-    print(df[df['Type'] == '0'].head(), "\n")
+    print(df[df['label'] == '1'].head(), "\n")
+    print(df[df['label'] == '0'].head(), "\n")
 
 
     # Print percentage of 1's
     tot_rows = len(df)
-    num_type_1 = len(df[df['Type'] == '1'])
+    num_type_1 = len(df[df['label'] == '1'])
     percentage = (num_type_1 / tot_rows) * 100
     print(f"Total size of dataset: {len(dataset)}\nPercentage of good examples in the dataset: {percentage:.2f}%\n")
 
