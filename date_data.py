@@ -16,6 +16,7 @@ def generate_date_variations(date):
     variations.append(date_obj.strftime("%d/%m/%y")) # 17/02/09
     variations.append(date_obj.strftime("%Y/%m/%d")) # 2009/02/17
     variations.append(date_obj.strftime("%B %d, %Y")) # February 17, 2009
+    variations.append(date_obj.strftime("%B %d, %y")) # February 17, 09
     variations.append(date_obj.strftime("%-m/%-d/%Y")) # 2/17/2009
     variations.append(date_obj.strftime("%-m/%-d/%y")) # 2/17/09
     variations.append(date_obj.strftime("%-d/%-m/%Y")) # 17/2/2009
