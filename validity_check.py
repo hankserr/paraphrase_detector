@@ -80,8 +80,10 @@ def check_dates_in_strings(input_list, date_="2021-01-01", print_output=True):
     correct_date = get_date(date_)
     for item in input_list:
         date = get_date(item)
-        if date is None or date != correct_date:
-            bad_dates.append(item)
+        if date is None :
+            bad_dates.append({"sentence": item, "date found": "No", "date": "None"})
+        if date != correct_date:
+            bad_dates.append({"sentence": item, "date found": "Yes", "date": date})
     if print_output:
         print_bad_dates(bad_dates)
     return
