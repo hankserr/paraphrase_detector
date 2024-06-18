@@ -1,5 +1,5 @@
 """
-0.2.2
+0.2.3
 Program to take in a sentence and return true if it contains the correct date variations
 and false if it doesn't.
 """
@@ -83,7 +83,7 @@ def populate_test_list(date_="2021-01-01", shift=0):
 
 # Given a list of strings, check if dates are in the strings and dates are correct
 # Output is a list of strings containing bad dates
-def check_dates_in_strings(input_list, date_="2021-01-01", print_output=True):
+def check_dates_in_strings(input_list, print_output=True, date_="2021-01-01"):
     bad_dates = []
     correct_date = get_date(date_)
     for item in input_list:
