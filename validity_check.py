@@ -1,5 +1,5 @@
 """
-0.2.0
+0.2.2
 Program to take in a sentence and return true if it contains the correct date variations
 and false if it doesn't.
 """
@@ -94,6 +94,8 @@ def check_dates_in_strings(input_list, date_="2021-01-01", print_output=True):
             bad_dates.append({"sentence": item, "date found": "Yes", "date": date})
     if print_output:
         print_bad_dates(bad_dates)
+    else:
+        return bad_dates
     return
 
 # Print bad_dates list
