@@ -1,5 +1,5 @@
 """
-0.2.3
+0.2.4
 Program to take in a sentence and return true if it contains the correct date variations
 and false if it doesn't.
 """
@@ -109,6 +109,7 @@ def print_bad_dates(bad_dates):
         print(len(bad_dates), "bad date(s) found:")
         # print bad_dates dataframe
         print(bad_dates)
+        bad_dates.to_csv('paraphrase_dataset_dates.csv', index=False)
     return
 
 # main: test get_date function
