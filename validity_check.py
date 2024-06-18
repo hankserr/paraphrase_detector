@@ -1,5 +1,5 @@
 """
-0.2.4
+0.2.5
 Program to take in a sentence and return true if it contains the correct date variations
 and false if it doesn't.
 """
@@ -85,17 +85,20 @@ def populate_test_list(date_="2021-01-01", shift=0):
 # Output is a list of strings containing bad dates
 def check_dates_in_strings(input_list, print_output=True, date_="2021-01-01"):
     bad_dates = []
+    good_dates = []
     correct_date = get_date(date_)
     for item in input_list:
         date = get_date(item)
         if date is None :
             bad_dates.append({"sentence": item, "date found": "No", "date": "None"})
-        if date != correct_date:
+        elif date != correct_date:
             bad_dates.append({"sentence": item, "date found": "Yes", "date": date})
+        else :
+            good_dates.append({"sentence": item, "date found": "Yes", "date": date})
     if print_output:
         print_bad_dates(bad_dates)
     else:
-        return bad_dates
+        return bad_dates, good_dates
     return
 
 # Print bad_dates list
@@ -129,6 +132,16 @@ def main():
         test_list = populate_test_list()
         for item in test_list:
             print(item)
+
+
+    elif len(sys.argv) == 2 and sys.argv[1] == "-check":
+        with open('output', 'w') as file:
+            file.write('\n' + "tester" + '\n')
+            test_list = populate_test_list()
+            output = check_dates_in_strings(test_list, False)
+            for item in output:
+                file.write(str(item["sentence"] + '\t' + item["date found"] + '\t' + item["date"] + '\n'))
+            file.write('\n' + "closing" + '\n')
     else:
         print("Usage: python3 validity_check.py -test")
         print("Usage: python3 validity_check.py -list")

@@ -30,11 +30,11 @@ def generate_date_variations(date):
     variations.append(date_obj.strftime("%Y, %B %d")) # 2009, February 17
     variations.append(date_obj.strftime("%b %d, %Y")) # Feb 17, 2009
     variations.append(date_obj.strftime("%d %b, %Y")) # 17 Feb, 2009
-    variations.append(date_obj.strftime("%y, %B %d")) # 09, February 17
+    # variations.append(date_obj.strftime("%y, %B %d")) # 09, February 17 -> removed from scope
     variations.append(date_obj.strftime("%b %d, %y")) # Feb 17, 09
     variations.append(date_obj.strftime("%d %b, %y")) # 17 Feb, 09
     variations.append(date_obj.strftime("%Y, %b %d")) # 2009, Feb 17
-    variations.append(date_obj.strftime("%y, %b %d")) # 09, Feb 17
+    # variations.append(date_obj.strftime("%y, %b %d")) # 09, Feb 17 -> removed from scope
     variations.append(date_obj.strftime("%b %d, %Y")) # Feb 17, 2014
     variations.append(date_obj.strftime("%d %b, %Y")) # 17 Feb, 2014
     variations.append(date_obj.strftime("%Y, %b %d")) # 2014, Feb 17
