@@ -9,6 +9,8 @@ from dateutil import parser
 from date_data import generate_date_variations
 import sys
 from datetime import datetime
+import pandas as pd
+
 
 # A function that uses parser from dateutil to return a date from a string
 def get_date(date_string):
@@ -31,6 +33,12 @@ def test_date_in_string():
         if not date == get_date(test_str):
             missed_variations.append(variation)
     return missed_variations
+
+# Function to test check_dates_in_strings
+def test_check_dates_in_strings():
+    test_list = populate_test_list()
+    check_dates_in_strings(test_list)
+    return
 
 # Function to populate a test list
 # Shift is used to mix up the variation sentence pairs
@@ -90,12 +98,15 @@ def check_dates_in_strings(input_list, date_="2021-01-01", print_output=True):
 
 # Print bad_dates list
 def print_bad_dates(bad_dates):
+    # Make bad_dates into pandas dataframe
+    bad_dates = pd.DataFrame(bad_dates)
+    # pdb.set_trace()
     if len(bad_dates) == 0:
         print("All dates are correct.")
     else:
         print(len(bad_dates), "bad date(s) found:")
-        for bad_date in bad_dates:
-            print(bad_date)
+        # print bad_dates dataframe
+        print(bad_dates)
     return
 
 # main: test get_date function
@@ -109,6 +120,8 @@ def main():
             print("The following variations are not found:")
             for variation in missed_variations:
                 print(variation)
+        test_check_dates_in_strings()
+
     elif len(sys.argv) == 2 and sys.argv[1] == "-list":
         test_list = populate_test_list()
         for item in test_list:
