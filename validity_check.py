@@ -1,5 +1,5 @@
 """
-0.2.5
+0.2.6
 Program to take in a sentence and return true if it contains the correct date variations
 and false if it doesn't.
 """
@@ -148,5 +148,82 @@ def main():
 
     return
 
+# Function: input two pandas dataframes.
+# Output: insert the entire second dataframe at the halfway point of the first dataframe
+def insert_at_halfway(df, dates):
+    half = int(len(df) / 2)
+    df1 = df.iloc[:half]
+    df2 = df.iloc[half:]
+    df = pd.concat([df1, dates, df2], ignore_index=True)
+    return df
+
 if __name__ == "__main__":
     main()
+
+
+################### Colab Code ###################
+"""
+os.chdir('/content/drive/MyDrive/Colab Notebooks')
+
+from validity_check import populate_test_list, check_dates_in_strings
+
+good_dates = []
+
+with open('output', 'w') as file:
+  test_list = populate_test_list()
+  for sentence in test_list:
+    file.write('\n\n' + sentence + '\n')
+    input = generate_paraphrase(sentence)
+    output, good_output = check_dates_in_strings(input, False)
+    for item in good_output:
+      good_dates.append([sentence, item["sentence"]])
+    for item in output:
+      given_date = item["date"]
+      if not given_date:
+        given_date = "none"
+      file.write(str(item["sentence"] + '\t\t' + item["date found"] + '\t' + given_date + '\n'))
+
+
+def good_dates_dataset(good_dates):
+  i = 0
+  new_pairs = []
+  last = good_dates[0][1]
+  while i < len(good_dates) - 1:
+    if good_dates[i][0] == good_dates[i+1][0]:
+      new_pairs.append([good_dates[i][1], good_dates[i+1][1]])
+      last = good_dates[i+1][1]
+      i += 1
+    elif good_dates[i][1] != last:
+      new_pairs.append([last, good_dates[i][1]])
+      last = good_dates[i+1][1]
+    i += 1
+  return new_pairs
+
+good_pairs = good_dates_dataset(good_dates)
+
+
+print(len(good_pairs))
+# double pairs dataset by flipping pairs
+for i in range(len(good_pairs)):
+  good_pairs.append(["paraphrase: " + good_pairs[i][1], good_pairs[i][0]])
+  good_pairs[i][0] = "paraphrase: " + good_pairs[i][0]
+print(len(good_pairs))
+
+
+ # make a csv dataset & splice into big csv dataset. Save as one large csv dataset
+dates = pd.DataFrame(good_pairs, columns=["prompt", "label"])
+dates.to_csv('good_pairs.csv', ignore_index = True)
+dates.head()
+
+# insert the entirity of the dates dataframe at the halfway point of the df dataframe
+def insert_at_halfway(df, dates):
+    half = int(len(df) / 2)
+    print(half)
+    df1 = df.iloc[:half]
+    df2 = df.iloc[half:]
+    df = pd.concat([df1, dates, df2], ignore_index=True)
+    return df
+
+new_df = insert_at_halfway(df, dates)
+new_df.to_csv('dateset_with_dates.csv')
+"""
