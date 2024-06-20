@@ -1,5 +1,5 @@
 """
-0.2.6
+0.2.7
 Program to take in a sentence and return true if it contains the correct date variations
 and false if it doesn't.
 """
@@ -42,7 +42,7 @@ def test_check_dates_in_strings():
 
 # Function to populate a test list
 # Shift is used to mix up the variation sentence pairs
-def populate_test_list(date_="2021-01-01", shift=0):
+def populate_test_list(date_="2021-01-01", shift=0, opt_array=None):
     test_list = [
         "<date> marks the start of our company's fiscal year.",
         "<date> is when the new semester begins for most universities.",
@@ -76,6 +76,9 @@ def populate_test_list(date_="2021-01-01", shift=0):
     ]
     date = get_date(date_)
     variations = generate_date_variations(date)
+    # if opt_array is not None: use opt_array instead of variations
+    if opt_array is not None:
+        variations = opt_array
     for index in range(len(test_list)):
         # locate the <date> tag and replace it with a random variation from variations
         test_list[index] = test_list[index].replace("<date>", variations[(index + shift) % len(variations)])
