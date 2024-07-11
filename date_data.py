@@ -4,6 +4,112 @@ import pandas as pd
 import math
 import pdb
 
+
+# Synonyms for few-shot learning
+synonyms = {
+    "nearly": [
+        "almost", "close to", "practically", "virtually", "just about",
+        "approximately", "nigh", "on the verge of", "well-nigh", "approaching",
+        "bordering on", "more or less", "roughly", "near", "all but",
+        "around", "kind of", "practically", "generally", "somewhat"
+    ],
+    "between": [
+        "among", "amidst", "in the middle of", "betwixt", "halfway",
+        "in the midst of", "inter", "intermediate", "linking", "connecting",
+        "separating", "interspersed", "dividing", "surrounded by", "sandwiched",
+        "intersecting", "midst", "central", "bordered by", "caught in"
+    ],
+    "after": [
+        "following", "subsequent to", "succeeding", "later", "in the wake of",
+        "ensuing", "past", "beyond", "posterior to", "next",
+        "afterward", "behind", "trailing", "henceforth", "thereafter",
+        "then", "post", "later on", "as a result of", "coming after"
+    ],
+    "before": [
+        "prior to", "ahead of", "earlier than", "preceding", "previous to",
+        "antecedent to", "formerly", "in advance of", "hitherto", "up to",
+        "leading up to", "earlier", "anterior to", "sooner than", "afore",
+        "beforehand", "preceding", "up until", "previous", "ahead"
+    ]
+}
+
+sentence_pairs = [
+    # Pair 1
+    [
+        "We should finish the project [TIME_WORD] a month.",
+        "The project is expected to be completed [TIME_WORD] four weeks."
+    ],
+    # Pair 2
+    [
+        "The event will start [TIME_WORD] noon.",
+        "Expect the event to begin [TIME_WORD] 12 PM."
+    ],
+    # Pair 3
+    [
+        "She arrived [TIME_WORD] the scheduled time.",
+        "Her arrival was [TIME_WORD] the expected time."
+    ],
+    # Pair 4
+    [
+        "The meeting will be held [TIME_WORD] two and three o'clock.",
+        "The meeting is scheduled [TIME_WORD] 2:00 and 3:00 PM."
+    ],
+    # Pair 5
+    [
+        "Our appointment is set for [TIME_WORD] the holidays.",
+        "We'll have our meeting [TIME_WORD] the holiday season."
+    ],
+    # Pair 6
+    [
+        "He called me [TIME_WORD] dinner.",
+        "He gave me a call [TIME_WORD] our dinner."
+    ],
+    # Pair 7
+    [
+        "We can expect the delivery [TIME_WORD] a week.",
+        "The package should arrive [TIME_WORD] seven days."
+    ],
+    # Pair 8
+    [
+        "Her promotion came [TIME_WORD] a year at the company.",
+        "She was promoted [TIME_WORD] twelve months at her job."
+    ],
+    # Pair 9
+    [
+        "The contract will expire [TIME_WORD] the fiscal year ends.",
+        "The contract is set to end [TIME_WORD] the close of the fiscal year."
+    ],
+    # Pair 10
+    [
+        "They announced the results [TIME_WORD] the votes were counted.",
+        "The results were revealed [TIME_WORD] the vote tally."
+    ]
+]
+
+# Given a word ('nearly', 'between', 'after', 'before'), generate a list of synonym pairs
+def generate_synonym_word_pairs(word):
+    words = synonyms[word]
+    words.append(word)  # Add the original word to the list of synonyms
+    # create extensive random pairs list from words
+    pairs = []
+    for i in range(len(words)):
+        for j in range(i+1, len(words)):
+            pairs.append([words[i], words[j]])
+    # flip pairs and append to pairs
+    for i in range(len(pairs)):
+        pairs.append([pairs[i][1], pairs[i][0]])
+
+# Given a list of pairs, generate a list of sentence pairs with the word replaced by its synonym
+def generate_synonym_sentence_pairs(pairs):
+    synonym_sentence_pairs = []
+    sentence_counter = 0
+    len_sentence_pairs = len(sentence_pairs)
+    for pair in pairs:
+        synonym_sentence_pairs.append([sentence_pairs[sentence_counter%len_sentence_pairs][0].replace("[TIME_WORD]", pair[0]),
+                                       sentence_pairs[sentence_counter%len_sentence_pairs][1].replace("[TIME_WORD]", pair[1])])
+        sentence_counter += 1
+    return synonym_sentence_pairs
+
 # Helper function to create date variations
 def generate_date_variations(date):
     variations = []
@@ -210,6 +316,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
