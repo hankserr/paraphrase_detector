@@ -1,0 +1,49 @@
+# Old dependencies
+beautifulsoup4==4.12.0
+rapidfuzz==3.0.0
+Flask==2.2.5
+# spacy==3.5.0
+torch==1.13.1
+# transformers==4.37.0
+sentencepiece==0.1.97
+gunicorn==20.1.0
+diffusers==0.21.0
+pyspellchecker==0.7.2
+# optimum==1.16.2
+# onnxruntime==1.16.1
+onnx==1.16.0
+Werkzeug==3.0.3
+numpy==1.23.3
+aiohttp>=3.9.4 # not directly required, pinned by Snyk to avoid a vulnerability
+pillow>=10.2.0 # not directly required, pinned by Snyk to avoid a vulnerability
+pyarrow>=14.0.1 # not directly required, pinned by Snyk to avoid a vulnerability
+setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability
+sympy>=1.12 # not directly required, pinned by Snyk to avoid a vulnerability
+wheel>=0.38.0 # not directly required, pinned by Snyk to avoid a vulnerability
+
+# New dependencies
+# beautifulsoup4==4.12.3
+# rapidfuzz==3.9.4
+# Flask==3.0.3
+spacy==3.7.5
+# torch==2.3.1
+transformers==4.42.4
+# sentencepiece==0.2.0
+# gunicorn==22.0.0
+# diffusers==0.21.0
+# pyspellchecker==0.7.2
+optimum==1.21.2
+onnxruntime==1.18.1
+# onnx==1.16.1
+# Werkzeug==3.0.3
+# numpy==1.26.4
+# aiohttp>=3.9.5 # not directly required, pinned by Snyk to avoid a vulnerability
+# pillow>=10.2.0 # not directly required, pinned by Snyk to avoid a vulnerability
+# pyarrow>=14.0.1 # not directly required, pinned by Snyk to avoid a vulnerability, 17.0.0
+# setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability
+# sympy>=1.12 # not directly required, pinned by Snyk to avoid a vulnerability, 1.13.1
+# wheel>=0.38.0 # not directly required, pinned by Snyk to avoid a vulnerability
+
+# ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.
+# en-core-web-sm 3.7.1 requires spacy<3.8.0,>=3.7.2, but you have spacy 3.5.0 which is incompatible.
+

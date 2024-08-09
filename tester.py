@@ -1,79 +1,109 @@
-import pdb
-from dateutil import parser
+import re
+from date_data import generate_date_variations
+from validity_check import get_date, check_date, print_bad_dates
+from datetime import datetime, timedelta
+import random
 import spacy
+import pdb
 
 nlp = spacy.load("en_core_web_sm")
 
-# A function that uses parser from dateutil to return a date from a string
-def get_date(date_string):
-    try:
-        date_obj = parser.parse(date_string, fuzzy=True)
-        return str(date_obj)[:10]
-    except ValueError:
-        return None
+def remove_duplicates_preserve_order(lst):
+    seen = set()
+    result = []
+    for item in lst:
+        if item not in seen:
+            seen.add(item)
+            result.append(item)
+    return result
+
+# Mask the dates
+def find_dates(text):
+    parts = text.split()
+    found_dates = []
+    # for each grouping of 3 words, check if it is a date
+    for i in range(len(parts) - 2):
+        part = " ".join(parts[i:i+3])
+        date = check_date(part)
+        if date is None:
+            date = get_date(part)
+        if date is not None:
+            found_dates.append(date)
+
+    date = get_date(" ".join(parts[-2:]))
+    if date is not None:
+        found_dates.append(date)
+
+    return remove_duplicates_preserve_order(found_dates)
+
+# Function to get random date
+def get_random_date(start_date="1999-01-01", end_date="2099-12-31"):
+    start = datetime.strptime(start_date, "%Y-%m-%d")
+    end = datetime.strptime(end_date, "%Y-%m-%d")
+    random_days = random.randint(0, (end - start).days)
+    random_date = start + timedelta(days=random_days)
+    return random_date.strftime("%Y-%m-%d")
+
+# Function to populate a test list
+# Shift is used to mix up the variation sentence pairs
+def populate_test_list(shift=0, opt_array=None):
+    global dates_
+    # dates_ = [get_random_date() for _ in range(3)]
+    dates_ = ["2021-01-01", "2021-01-02", "2021-01-03"]
+    # Create array of sentences from reading test_set.csv
+    test_list = []
+    with open("test_set.csv", "r") as file:
+        for line in file:
+            test_list.append(line.strip())
+    variations = [generate_date_variations(dates_[i]) for i in range(3)]
+    # if opt_array is not None: use opt_array instead of variations
+    if opt_array is not None:
+        variations = opt_array
+    pdb.set_trace()
+    for index in range(len(test_list)):
+        # locate the <date> tag and replace it with a random variation from variations
+        test_list[index] = test_list[index].replace("<date_1>", variations[0][(index + shift) % len(variations[0])])
+        test_list[index] = test_list[index].replace("<date_2>", variations[1][(index + shift + 1) % len(variations[1])])
+        test_list[index] = test_list[index].replace("<date_3>", variations[2][(index + shift + 2) % len(variations[2])])
+
+    return test_list
 
 
-def mask_dates(text):
-  doc = nlp(text)
-  output = []
-  print(doc)
-  print(doc.ents)
-  for ent in doc.ents:
-    if ent.label_ == "DATE":
-      output.append(ent.text)
-  return output
-
-s1 = "Jan012021 marks the first day of the annual technology conference."
-s2 = "The new product launch is scheduled for 2021Jan01, with a press event."
-
-# print(get_date(s1))
-# print(get_date(s2))
-# print(mask_dates(s1))
-# print(mask_dates(s2))
-
-import re
-
-def convert_month_to_number(month):
-    months = {
-        "Jan": "01", "Feb": "02", "Mar": "03", "Apr": "04",
-        "May": "05", "Jun": "06", "Jul": "07", "Aug": "08",
-        "Sep": "09", "Oct": "10", "Nov": "11", "Dec": "12"
-    }
-    return months.get(month, "00")
-
-def check_date(sentence, correct_date):
-
-    # Regular expression to match dates in the format MonthDDYYYY or YYYYMonthDD
-    pattern = r'\b(?:\d{4}(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\d{2}|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\d{2}\d{4})\b'
-
-    # Search for the date in the sentence
-    match = re.search(pattern, sentence)
-
-    if match:
-        found_date = match.group(0)
-
-        # Determine the format of the found date
-        if found_date[:4].isdigit():
-            found_month = convert_month_to_number(found_date[4:7])
-            found_day = found_date[7:9]
-            found_year = found_date[:4]
+# Given a list of strings, check if dates are in the strings and dates are correct
+# Output is a list of strings containing bad dates
+def check_dates_in_strings(input_list, print_output=True):
+    bad_dates = []
+    good_dates = []
+    # correct_date = get_date(date_)
+    count = 0
+    for item in input_list:
+        count += 1
+        item_ = "temp " + item
+        dates = find_dates(item_)
+        if len(dates) > 3 and any(dates[i] in dates_ for i in range(len(dates))): # check if dates are in the list
+            good_dates.append({"sentence": item, "date found": "Partial", "date": dates, "Flagged": "Yes"})
+        elif all(dates[i] == dates_[i] for i in range(len(dates))): # check if dates are correct
+            good_dates.append({"sentence": item, "date found": "Yes", "date": dates, "Flagged": "No"})
         else:
-            found_month = convert_month_to_number(found_date[:3])
-            found_day = found_date[3:5]
-            found_year = found_date[5:]
-
-        found_date_formatted = f"{found_year}-{found_month}-{found_day}"
-        # Compare the found date with the correct date
-        return found_date_formatted == correct_date
+            bad_dates.append({"sentence": item, "date found": "No", "date": dates, "Flagged": "No"})
+    if print_output:
+        print_bad_dates(bad_dates)
     else:
-        # If no date found, return False
-        return False
+        return bad_dates, good_dates
+    return
 
-# Example usage
-sentence = "May052035 is when the new semester begins for most universities."
-correct_date = "2035-05-05"
+def test_check_dates_in_strings():
+    test_list = populate_test_list()
+    # for item in test_list:
+    #     print(item)
+    bad_dates, good_dates = check_dates_in_strings(test_list, print_output=False)
+    if len(bad_dates) > 0:
+        print(f"Test failed: {len(bad_dates)} bad dates found ({len(good_dates) / len(test_list) * 100}%)")
+        for item in bad_dates:
+            print(item)
+    if len(bad_dates) == 0:
+        print("Test passed: no bad dates found")
 
-output = check_date(sentence, correct_date)
-print(output)  # Should print: True
-# pdb.set_trace()
-print(check_date(s2, "2021-01-01"))
+# test_check_dates_in_strings()
+foo = find_dates("Our annual family reunion is set for 2052-04-19, at the lake house.")
+print(foo == ['2052-04-19'])

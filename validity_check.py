@@ -1,17 +1,27 @@
 """
 0.2.8
+0.2.8
 Program to take in a sentence and return true if it contains the correct date variations
 and false if it doesn't.
 """
 
 import pdb
+import requests
 from dateutil import parser
 from date_data import generate_date_variations
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 import pandas as pd
 import re
+import random
 
+############################## GLOBAL VARIABLES ##############################
+
+# date_ = [get_random_date() for _ in range(3)]
+# global dates array used for populating test_list and check_dates_in_strings
+
+def get_dates():
+    return dates_
 
 # A function that uses parser from dateutil to return a date from a string
 def get_date(date_string):
@@ -29,13 +39,13 @@ def convert_month_to_number(month):
     }
     return months.get(month, "00")
 
-def check_date(sentence, correct_date):
+def check_date(sentence, correct_date = [], check=False):
 
     # Regular expression to match dates in the format MonthDDYYYY or YYYYMonthDD
     pattern = r'\b(?:\d{4}(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\d{2}|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\d{2}\d{4})\b'
 
     # Search for the date in the sentence
-    match = re.search(pattern, sentence)
+    match = re.search(pattern, sentence.lower())
 
     if match:
         found_date = match.group(0)
@@ -52,10 +62,12 @@ def check_date(sentence, correct_date):
 
         found_date_formatted = f"{found_year}-{found_month}-{found_day}"
         # Compare the found date with the correct date
-        return found_date_formatted == correct_date
+        if check is True: return found_date_formatted in correct_date
+        else: return found_date_formatted
     else:
         # If no date found, return False
-        return False
+        if check is True: return False
+        else: return None
 
 # A function to test date_in_string
 # It generates variations using date_data.py and checks if date_in_string returns true
@@ -77,73 +89,149 @@ def test_check_dates_in_strings():
     check_dates_in_strings(test_list)
     return
 
+# Function to get random date
+def get_random_date(start_date="1999-01-01", end_date="2099-12-31"):
+    start = datetime.strptime(start_date, "%Y-%m-%d")
+    end = datetime.strptime(end_date, "%Y-%m-%d")
+    random_days = random.randint(0, (end - start).days)
+    random_date = start + timedelta(days=random_days)
+    return random_date.strftime("%Y-%m-%d")
+
 # Function to populate a test list
 # Shift is used to mix up the variation sentence pairs
-def populate_test_list(date_="2021-01-01", shift=0, opt_array=None):
-    test_list = [
-        "<date> marks the start of our company's fiscal year.",
-        "<date> is when the new semester begins for most universities.",
-        "<date> contains the deadline for all submissions to the journal.",
-        "On <date>, the committee will meet to discuss the new policy.",
-        "By <date>, we need to finalize our travel arrangements.",
-        "From <date>, the store will be closed for renovations.",
-        "The concert will take place on <date>, in the evening.",
-        "The book release is scheduled for <date>, so mark your calendars.",
-        "Our vacation begins the day of <date>, so pack your bags.",
-        "The project needs to be completed by <date>.",
-        "We will celebrate her retirement on <date>.",
-        "The software update is scheduled for <date>.",
-        "The birthday party is on <date>, please do not be late",
-        "<date> is the deadline for all scholarship applications.",
-        "<date> marks the first day of the annual technology conference.",
-        "On <date>, the board will announce the new executive appointments.",
-        "The new product launch is scheduled for <date>, with a press event.",
-        "By <date>, all employees must complete the mandatory training.",
-        "From <date>, the exhibition will be open to the public.",
-        "<date> is when the marathon will take place, starting at dawn.",
-        "<date> is the release date for the highly anticipated movie.",
-        "Our annual family reunion is set for <date>, at the lake house.",
-        "The tax filing deadline is on <date>, so submit your returns by then.",
-        "The conference call to discuss the merger has been scheduled for <date> in the afternoon.",
-        "Please ensure all documents are submitted by the deadline of <date> to avoid penalties.",
-        "Preparations for the festival, happening <date>, should be finalized by the end of this week.",
-        "The award ceremony, planned for <date>, will be held at the downtown auditorium.",
-        "Make sure to RSVP by <date> to secure your spot at the workshop.",
-        "Construction of the new office building is expected to begin around <date>.",
-    ]
-    date = get_date(date_)
-    variations = generate_date_variations(date)
+def populate_test_list(shift=0, opt_array=None, test=False):
+    global dates_
+    dates_ = [get_random_date() for _ in range(3)]
+    # Create array of sentences from reading test_set.csv
+    test_list = []
+    with open("test_set.csv", "r") as file:
+        for line in file:
+            test_list.append(line.strip())
+    variations = [generate_date_variations(dates_[i]) for i in range(3)]
     # if opt_array is not None: use opt_array instead of variations
     if opt_array is not None:
         variations = opt_array
     for index in range(len(test_list)):
-        # locate the <date> tag and replace it with a random variation from variations
-        test_list[index] = test_list[index].replace("<date>", variations[(index + shift) % len(variations)])
+        if not test:
+            # locate the <date> tag and replace it with a random variation from variations
+            test_list[index] = test_list[index].replace("<date_1>", variations[0][(index + shift) % len(variations)])
+            test_list[index] = test_list[index].replace("<date_2>", variations[1][(index + shift + 1) % len(variations)])
+            test_list[index] = test_list[index].replace("<date_3>", variations[2][(index + shift + 2) % len(variations)])
+        else:
+            rand = random.uniform(0, 1)
+            if rand < 0.5:
+                test_list[index] = test_list[index].replace("<date_1>", variations[0][(index + shift) % len(variations)])
+                test_list[index] = test_list[index].replace("<date_2>", variations[1][(index + shift + 1) % len(variations)])
+                test_list[index] = test_list[index].replace("<date_3>", variations[2][(index + shift + 2) % len(variations)])
+            elif rand < 0.75:
+                test_list[index] = test_list[index].replace("<date_1>", variations[1][(index + shift) % len(variations)])
+                test_list[index] = test_list[index].replace("<date_2>", variations[2][(index + shift + 1) % len(variations)])
+                test_list[index] = test_list[index].replace("<date_3>", variations[0][(index + shift + 2) % len(variations)])
+            else:
+                test_list[index] = test_list[index].replace("<date_1>", variations[2][(index + shift) % len(variations)])
+                test_list[index] = test_list[index].replace("<date_2>", variations[0][(index + shift + 1) % len(variations)])
+                test_list[index] = test_list[index].replace("<date_3>", variations[1][(index + shift + 2) % len(variations)])
+
     return test_list
 
+# Helper function for find_dates()
+def remove_duplicates_preserve_order(lst):
+    seen = set()
+    result = []
+    for item in lst:
+        if item not in seen:
+            seen.add(item)
+            result.append(item)
+    return result
 
+# Finds dates in a string
+def find_dates(text):
+    parts = text.split()
+    found_dates = []
+    # for each grouping of 3 words, check if it is a date
+    for i in range(len(parts) - 2):
+        part = " ".join(parts[i:i+3])
+        date = check_date(part)
+        if date is None:
+            date = get_date(part)
+        if date is not None:
+            found_dates.append(date)
+
+    date = get_date(" ".join(parts[-2:]))
+    if date is not None:
+        found_dates.append(date)
+
+    return remove_duplicates_preserve_order(found_dates)
 
 # Given a list of strings, check if dates are in the strings and dates are correct
 # Output is a list of strings containing bad dates
-def check_dates_in_strings(input_list, print_output=True, date_="2021-01-01"):
+def check_dates_in_strings(input_list, print_output=True):
     bad_dates = []
     good_dates = []
-    correct_date = get_date(date_)
+    flagged_count = 0
+    # correct_date = get_date(date_)
+    count = 0
     for item in input_list:
-        date = get_date(item)
-        if check_date(item, correct_date):
-            good_dates.append({"sentence": item, "date found": "Yes", "date": date})
-        elif date is None :
-            bad_dates.append({"sentence": item, "date found": "No", "date": "None"})
-        elif date != correct_date:
-            bad_dates.append({"sentence": item, "date found": "Yes", "date": date})
-        else :
-            good_dates.append({"sentence": item, "date found": "Yes", "date": date})
+        count += 1
+        item_ = "temp " + item
+        dates = find_dates(item_)
+        if len(dates) > 3 and any(dates[i] in dates_ for i in range(len(dates))): # check if dates are in the list
+            good_dates.append({"sentence": item, "date found": "Partial", "date": dates, "Flagged": "Yes"})
+            flagged_count += 1
+        elif all(dates[i] == dates_[i] for i in range(len(dates))): # check if dates are correct
+            good_dates.append({"sentence": item, "date found": "Yes", "date": dates, "Flagged": "No"})
+        else:
+            bad_dates.append({"sentence": item, "date found": "No", "date": dates, "Flagged": "No"})
     if print_output:
         print_bad_dates(bad_dates)
     else:
-        return bad_dates, good_dates
+        return bad_dates, good_dates, flagged_count
     return
+
+
+# Function to get results from check_dates_in_strings
+def run_check_dates_in_strings(test_list = populate_test_list()):
+    bad_dates, good_dates, flagged = check_dates_in_strings(test_list, print_output=False)
+    passing_threshold = 6
+    if len(bad_dates) > passing_threshold:
+        print(f"Test failed: {len(bad_dates)} bad dates found ({len(good_dates) / len(test_list) * 100}%)")
+        print(f"Passing Theshold: {passing_threshold}")
+        print(f"\nFlagged: {flagged}")
+        for item in bad_dates:
+            print(item)
+    else:
+        print(f"Test passed: threshold ({passing_threshold}) reached")
+
+# Make post request to localhost
+def make_post_request(text, variant_count):
+    url = 'http://localhost:8080/api/internal/variants'
+    headers = {'Content-Type': 'application/json'}
+    data = {
+        'text': text,
+        'variantCount': variant_count
+    }
+
+    response = requests.post(url, headers=headers, data=json.dumps(data))
+    return response.json()
+
+# process the model json response
+# return list of variant sentences
+# input: list of original sentences, variant count
+def process_report(texts, variant_count):
+    variants = []
+    for text in texts:
+        response = make_post_request(text, variant_count)
+        try:
+            for variant in response[0]['variants']:
+                variants.append(variant)
+        except:
+            print(f"Bad Response: {response}\nFrom: {text}\n\n")
+    return variants
+
+def test_model(path):
+    model_in = populate_test_list()
+    model_out = process_report(model_in, 9) # default variant count = 9 per input
+    run_check_dates_in_strings(model_out)
 
 # Print bad_dates list
 def print_bad_dates(bad_dates):
@@ -186,9 +274,13 @@ def main():
             for item in output:
                 file.write(str(item["sentence"] + '\t' + item["date found"] + '\t' + item["date"] + '\n'))
             file.write('\n' + "closing" + '\n')
+    elif len(sys.argv) == 3 and sys.argv[1] == "-run":
+        test_model(sys.argv[2])
     else:
         print("Usage: python3 validity_check.py -test")
         print("Usage: python3 validity_check.py -list")
+        print("Usage: python3 validity_check.py -check")
+        print("Usage: python3 validity_check.py -run [path to model]")
 
     return
 
@@ -203,71 +295,3 @@ def insert_at_halfway(df, dates):
 
 if __name__ == "__main__":
     main()
-
-
-################### Colab Code ###################
-"""
-os.chdir('/content/drive/MyDrive/Colab Notebooks')
-
-from validity_check import populate_test_list, check_dates_in_strings
-
-good_dates = []
-
-with open('output', 'w') as file:
-  test_list = populate_test_list()
-  for sentence in test_list:
-    file.write('\n\n' + sentence + '\n')
-    input = generate_paraphrase(sentence)
-    output, good_output = check_dates_in_strings(input, False)
-    for item in good_output:
-      good_dates.append([sentence, item["sentence"]])
-    for item in output:
-      given_date = item["date"]
-      if not given_date:
-        given_date = "none"
-      file.write(str(item["sentence"] + '\t\t' + item["date found"] + '\t' + given_date + '\n'))
-
-
-def good_dates_dataset(good_dates):
-  i = 0
-  new_pairs = []
-  last = good_dates[0][1]
-  while i < len(good_dates) - 1:
-    if good_dates[i][0] == good_dates[i+1][0]:
-      new_pairs.append([good_dates[i][1], good_dates[i+1][1]])
-      last = good_dates[i+1][1]
-      i += 1
-    elif good_dates[i][1] != last:
-      new_pairs.append([last, good_dates[i][1]])
-      last = good_dates[i+1][1]
-    i += 1
-  return new_pairs
-
-good_pairs = good_dates_dataset(good_dates)
-
-
-print(len(good_pairs))
-# double pairs dataset by flipping pairs
-for i in range(len(good_pairs)):
-  good_pairs.append(["paraphrase: " + good_pairs[i][1], good_pairs[i][0]])
-  good_pairs[i][0] = "paraphrase: " + good_pairs[i][0]
-print(len(good_pairs))
-
-
- # make a csv dataset & splice into big csv dataset. Save as one large csv dataset
-dates = pd.DataFrame(good_pairs, columns=["prompt", "label"])
-dates.to_csv('good_pairs.csv', ignore_index = True)
-dates.head()
-
-# insert the entirity of the dates dataframe at the halfway point of the df dataframe
-def insert_at_halfway(df, dates):
-    half = int(len(df) / 2)
-    print(half)
-    df1 = df.iloc[:half]
-    df2 = df.iloc[half:]
-    df = pd.concat([df1, dates, df2], ignore_index=True)
-    return df
-
-new_df = insert_at_halfway(df, dates)
-new_df.to_csv('dateset_with_dates.csv')
-"""
