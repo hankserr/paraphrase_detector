@@ -1,0 +1,185 @@
+#### Old Code Content From Colab ####
+
+# Validation Testing #
+os.chdir('/content/drive/MyDrive/Colab Notebooks')
+
+from validity_check import populate_test_list, check_dates_in_strings, run_check_dates_in_strings
+
+good_dates = []
+bad_counter = 0
+tot_bad_counter = 0
+temp_dates = []
+
+with open('output', 'w') as file:
+  # test_list = populate_test_list("2021-01-01", 0, ["May052035"])
+  test_list = populate_test_list()
+  for sentence in test_list:
+    file.write('\n\n' + sentence + '\n')
+    tot_bad_counter += bad_counter
+    bad_counter = 0
+    input = generate_paraphrase(sentence)
+    output, good_output = check_dates_in_strings(input, False)
+    for item in good_output:
+      good_dates.append([sentence, item["sentence"]])
+    for item in output:
+      temp_dates.append([sentence, item["sentence"]])
+      given_date = item["date"]
+      if not given_date:
+        given_date = "none"
+      file.write(str(item["sentence"] + '\t\t' + item["date found"] + '\t' + given_date + '\n'))
+      bad_counter += 1
+    file.write('\n' + str(bad_counter) + '\n')
+  file.write(str(tot_bad_counter))
+  file.write(str(tot_bad_counter / (tot_bad_counter + len(good_dates))))
+file.close()
+
+print(tot_bad_counter)
+print(tot_bad_counter / (tot_bad_counter + len(good_dates)))
+len(temp_dates)
+
+# Check if rephrase in good_dates #
+count = 0
+for item in good_dates:
+  if "rephrase" in item[0]:
+    count += 1
+    print(item)
+  elif "Rephrase" in item[0]:
+    count += 1
+    print(item)
+  if "rephrase" in item[1]:
+    count += 1
+    print(item)
+  elif "Rephrase" in item[1]:
+    count += 1
+    print(item)
+for item in temp_dates:
+  if "rephrase" in item[0]:
+    count += 1
+    print(item)
+  elif "Rephrase" in item[0]:
+    count += 1
+    print(item)
+  if "rephrase" in item[1]:
+    count += 1
+    print(item)
+  elif "Rephrase" in item[1]:
+    count += 1
+    print(item)
+
+print(count)
+
+
+# Populating a Dataset #
+# Go through container pair by pair. If pairs have same first value, pair up second values and delete originals
+# If the two pairs don't have same first values, pair up second value with prior second value
+# Then compare second pair with the following pair
+
+def good_dates_dataset(good_dates):
+  i = 0
+  new_pairs = []
+  last = good_dates[0][1]
+  while i < len(good_dates) - 1:
+    if good_dates[i][0] == good_dates[i+1][0]:
+      new_pairs.append([good_dates[i][1], good_dates[i+1][1]])
+      last = good_dates[i+1][1]
+      i += 1
+    elif good_dates[i][1] != last:
+      new_pairs.append([last, good_dates[i][1]])
+      last = good_dates[i+1][1]
+    i += 1
+  return new_pairs
+
+# good_pairs = good_dates_dataset(good_dates)
+print(len(good_pairs))
+
+
+# Expand good_pairs dataset by flipping pairs #
+def flip_pairs(good_pairs):
+  print(len(good_pairs))
+  # double pairs dataset by flipping pairs
+  for i in range(len(good_pairs)):
+    good_pairs.append(["paraphrase: " + good_pairs[i][1], good_pairs[i][0]])
+    good_pairs[i][0] = "paraphrase: " + good_pairs[i][0]
+  print(len(good_pairs))
+# flip_pairs(good_pairs)
+
+# Putting new pairs into dataset #
+few_shot_dates = pd.DataFrame(good_pairs, columns=["prompt", "label"])
+few_shot_dates.to_csv('few_shot_dates.csv')
+few_shot_dates.head()
+ # make a csv dataset & splice into big csv dataset. Save as one large csv dataset
+def new_dataset(good_pairs):
+  dates = pd.DataFrame(good_pairs, columns=["prompt", "label"])
+  # dates.to_csv('good_pairs.csv')
+  dates.head()
+
+  # insert 90% of the dates dataframe at the halfway point of the df dataframe, the other 10% goes at the back of the dataframe
+  def insert_at_halfway(df, dates):
+      half = int(len(df) / 2)
+      print(half)
+      df1 = df.iloc[:half]
+      df2 = df.iloc[half:]
+      split_index = int(len(dates) * 0.40)
+      dates_first_90 = dates.iloc[:split_index]
+      dates_last_10 = dates.iloc[split_index:]
+      # concat df1, 95% of dates, df2, the remaining 5% of dates into df
+      df = pd.concat([df1, dates_first_90, df2, dates_last_10], ignore_index=True)
+      return df
+
+  new_df = insert_at_halfway(df, dates)
+  new_df.drop(new_df.columns[new_df.columns.str.contains(
+    'unnamed', case=False)], axis=1, inplace=True)
+  new_df.to_csv('dataset_with_dates.csv')
+  print(len(new_df))
+
+print('1', len(df))
+# new_dataset(good_pairs)
+
+
+# Find all instances of "rephrase, preserve \"DATE\", and fix grammar" in pairs and remove
+# for i in range(len(good_pairs)):
+#   print(i)
+#   print(good_pairs[i][0])
+#   print(good_pairs[i][1])
+#   good_pairs[i][0] = good_pairs[i][0].replace("Rephrase, preserve \"DATE\", and fix grammar: ", "")
+#   good_pairs[i][1] = good_pairs[i][1].replace("Rephrase, preserve \"DATE\", and fix grammar: ", "")
+#   good_pairs[i][0] = good_pairs[i][0].replace("Rephrase, preserve \"DATE\", and correct grammar: ", "")
+#   good_pairs[i][1] = good_pairs[i][1].replace("Rephrase, preserve \"DATE\", and correct grammar: ", "")
+#   good_pairs[i][0] = good_pairs[i][0].replace("Rephrase, preserve \"DATE\" and correct grammar: ", "")
+#   good_pairs[i][1] = good_pairs[i][1].replace("Rephrase, preserve \"DATE\" and correct grammar: ", "")
+#   good_pairs[i][0] = good_pairs[i][0].replace("Rephrase, preserve \"DATE\" and fix grammar: ", "")
+#   good_pairs[i][1] = good_pairs[i][1].replace("Rephrase, preserve \"DATE\" and fix grammar: ", "")
+#   good_pairs[i][0] = good_pairs[i][0].replace("Rephrase, preserve \"DATE\" and fix grammar", "")
+#   good_pairs[i][1] = good_pairs[i][1].replace("Rephrase, preserve \"DATE\" and fix grammar", "")
+#   good_pairs[i][0] = good_pairs[i][0].replace("Rephrase, preserve \"DATE\", and fix grammar", "")
+#   good_pairs[i][1] = good_pairs[i][1].replace("Rephrase, preserve \"DATE\", and fix grammar", "")
+#   good_pairs[i][0] = good_pairs[i][0].replace("rephrase, preserve \"DATE\", and fix grammar", "")
+#   good_pairs[i][1] = good_pairs[i][1].replace("rephrase, preserve \"DATE\", and fix grammar", "")
+#   good_pairs[i][0] = good_pairs[i][0].replace("rephrase, preserve \"DATE\", and fix grammar: ", "")
+#   good_pairs[i][1] = good_pairs[i][1].replace("rephrase, preserve \"DATE\", and fix grammar: ", "")
+#   good_pairs[i][0] = good_pairs[i][0].replace("rephrase, preserve \"DATE\" and fix grammar", "")
+#   good_pairs[i][1] = good_pairs[i][1].replace("rephrase, preserve \"DATE\" and fix grammar", "")
+#   good_pairs[i][0] = good_pairs[i][0].replace("rephrase, preserve \"DATE\" and fix grammar: ", "")
+#   good_pairs[i][1] = good_pairs[i][1].replace("rephrase, preserve \"DATE\" and fix grammar: ", "")
+
+#   good_pairs[i][0] = good_pairs[i][0].replace("rephrase, preserve \"DATE\", and correct grammar", "")
+#   good_pairs[i][1] = good_pairs[i][1].replace("rephrase, preserve \"DATE\", and correct grammar", "")
+#   good_pairs[i][0] = good_pairs[i][0].replace("rephrase, preserve \"DATE\", and correct grammar: ", "")
+#   good_pairs[i][1] = good_pairs[i][1].replace("rephrase, preserve \"DATE\", and correct grammar: ", "")
+#   good_pairs[i][0] = good_pairs[i][0].replace("rephrase, preserve \"DATE\" and correct grammar", "")
+#   good_pairs[i][1] = good_pairs[i][1].replace("rephrase, preserve \"DATE\" and correct grammar", "")
+#   good_pairs[i][0] = good_pairs[i][0].replace("rephrase, preserve \"DATE\" and correct grammar: ", "")
+#   good_pairs[i][1] = good_pairs[i][1].replace("rephrase, preserve \"DATE\" and correct grammar: ", "")
+
+#   good_pairs[i][0] = good_pairs[i][0].replace("rephrase, preserve and fix grammar: ", "")
+#   good_pairs[i][1] = good_pairs[i][1].replace("rephrase, preserve and fix grammar: ", "")
+#   good_pairs[i][0] = good_pairs[i][0].replace("rephrase, preserve, and fix grammar: ", "")
+#   good_pairs[i][1] = good_pairs[i][1].replace("rephrase, preserve, and fix grammar: ", "")
+#   good_pairs[i][0] = good_pairs[i][0].replace("rephrase, preserve and fix grammar", "")
+#   good_pairs[i][1] = good_pairs[i][1].replace("rephrase, preserve and fix grammar", "")
+#   good_pairs[i][0] = good_pairs[i][0].replace("rephrase, preserve, and fix grammar", "")
+#   good_pairs[i][1] = good_pairs[i][1].replace("rephrase, preserve, and fix grammar", "")
+
+#   print(good_pairs[i][0])
+#   print(good_pairs[i][1])
+#   print("\n\n")
